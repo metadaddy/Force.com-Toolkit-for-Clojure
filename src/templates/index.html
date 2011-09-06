@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title>Account List</title>
+		<link href="style.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+		<h2>Accounts for <span id="displayname">User Name</span></h2>
+		<form action="/" method="get">
+		    <h3 style="display:inline;">Filter on</h3>
+			<select id="field" name="field">
+				<option value="field1">Field 1</option>
+				<option value="field2">Field 2</option>
+			</select>
+			<input type="text" id="value" name="value" />
+			<input type="submit" id="go" name="search" value="Search" />
+		</form>
+		<form action="/action" method="post">
+			<input type="submit" id="new" name="new" value="New" />
+		</form>
+		<table class="accountlist">
+			<tr><td><a href="detail.html?id=000000000000000001">Account 1</a></td></tr>
+			<tr><td><a href="detail.html?id=000000000000000002">Account 2</a></td></tr>
+		</table>
+		<br/>
+		<a href="logout" id="logout">Logout</a>
+	</body>
+</html>
