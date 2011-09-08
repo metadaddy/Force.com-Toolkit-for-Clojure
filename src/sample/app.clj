@@ -163,7 +163,7 @@
 
 (defn -main []
   (let [port (Integer/parseInt (get (System/getenv) "PORT" "8080"))]
-  (if-let [ssl-port (Integer/parseInt (System/getenv "SSL_PORT"))]
+  (if-let [ssl-port (and (System/getenv "SSL_PORT") (Integer/parseInt (System/getenv "SSL_PORT")))]
     (run-jetty main-routes {:join? false :ssl? true :port port :ssl-port ssl-port
                             :keystore (System/getenv "KEYSTORE")
                             :key-password (System/getenv "KEY_PASSWORD")})
