@@ -13,9 +13,9 @@
 (defn id-helper
   "Given an OAuth response, return the id"
   [oauth]
-  (oauth-request 
+  (raw-oauth-request 
       oauth
-      (:id oauth)))
+      (:id @oauth)))
       
 (defmacro describe
     [obj-type]
@@ -26,7 +26,7 @@
   [oauth obj-type]
   (oauth-request 
       oauth
-      (str (:instance_url oauth) "/services/data/v21.0/sobjects/" obj-type "/describe/")))
+      (str "/services/data/v22.0/sobjects/" obj-type "/describe/")))
                       
 (defmacro query
   [query]
@@ -37,7 +37,7 @@
     [oauth query]
     (oauth-request 
         oauth
-        (str (:instance_url oauth) "/services/data/v21.0/query?q=" (codec/url-encode query))))
+        (str "/services/data/v22.0/query?q=" (codec/url-encode query))))
 
 (defmacro create
   [obj-type fields]
@@ -48,7 +48,7 @@
     [oauth obj-type fields]
     (oauth-request 
         oauth
-        (str (:instance_url oauth) "/services/data/v21.0/sobjects/" obj-type)
+        (str "/services/data/v22.0/sobjects/" obj-type)
         "POST"
         fields))
             			  
@@ -63,12 +63,12 @@
     ([oauth obj-type id]
     (oauth-request 
         oauth
-        (str (:instance_url oauth) "/services/data/v21.0/sobjects/" obj-type "/" id)))
+        (str "/services/data/v22.0/sobjects/" obj-type "/" id)))
     ; TODO - make field list a vector?
     ([oauth obj-type id field-list]
     (oauth-request 
         oauth
-        (str (:instance_url oauth) "/services/data/v21.0/sobjects/" obj-type "/" id "?fields=" field-list))))
+        (str "/services/data/v22.0/sobjects/" obj-type "/" id "?fields=" field-list))))
 
 (defmacro update
   [obj-type id fields]
@@ -81,7 +81,23 @@
     [oauth obj-type id fields]
     (oauth-request 
         oauth
-        (str (:instance_url oauth) "/services/data/v21.0/sobjects/" obj-type "/" id "?_HttpMethod=PATCH")
+        (str "/services/data/v22.0/sobjects/" obj-type "/" id "?_HttpMethod=PATCH")
+        "POST"
+        fields))
+
+(defmacro upsert
+  [obj-type externalIdField externalId fields]
+  `(upsert-helper ~'oauth ~obj-type ~externalIdField ~externalId ~fields))
+
+(defn upsert-helper 
+    "Given an OAuth response, object type, external id field, external id and 
+    fields, upsert the sobject"
+    ; Note - Java HttpURLConnection does not support PATCH (at least as of 
+    ; Java SE 6), so use the _HttpMethod workaround
+    [oauth obj-type externalIdField externalId fields]
+    (oauth-request 
+        oauth
+        (str "/services/data/v22.0/sobjects/" obj-type "/" externalIdField "/" externalId "?_HttpMethod=PATCH")
         "POST"
         fields))
 
@@ -94,5 +110,5 @@
     [oauth obj-type id]
     (oauth-request 
       oauth
-      (str (:instance_url oauth) "/services/data/v21.0/sobjects/" obj-type "/" id)
+      (str "/services/data/v22.0/sobjects/" obj-type "/" id)
       "DELETE"))

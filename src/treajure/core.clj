@@ -16,9 +16,28 @@
   	"&client_id=" (:client-id oauth-params)
   	"&redirect_uri=" (codec/url-encode (:redirect-uri oauth-params))))
 
+(defn- refresh-oauth 
+    "Do the OAuth refresh flow and return a map comprising a merge of the new
+    access token etc with the old client id, secret etc"
+    [oauth]
+    (when (:trace-messages oauth) 
+        (println (str "Sending OAuth request for refresh token " (:refresh-token oauth))))
+	(let [response 	
+		(json/read-json (http-agent/string
+    		(http-agent/http-agent (str (:login-uri oauth) "/services/oauth2/token")
+    		  :method "POST" 
+    		  :body (str
+    		    "grant_type=refresh_token" 
+    		    "&client_id=" (:client-id oauth) 
+    		    "&client_secret=" (:client-secret oauth) 
+    		    "&refresh_token=" (:refresh_token oauth)))))]
+            (when (:trace-messages oauth) 
+                (println (str "OAuth GET response is " response)))
+        	(merge oauth response)))
+
 (defn- get-oauth 
     "Exchange an OAuth authorization code for an OAuth response containing the
-    instance url/access token etc"
+    instance url, access token etc and the incoming configuration parameters"
     [oauth-params code]
     (when (:trace-messages oauth-params) 
         (println (str "Sending OAuth request for code " code)))
@@ -34,30 +53,45 @@
     		    "&redirect_uri=" (:redirect-uri oauth-params)))))]
             (when (:trace-messages oauth-params) 
                 (println (str "OAuth GET response is " response)))
-        	response))
+        	(merge oauth-params response)))
 
-(defn oauth-request
+(defn raw-oauth-request
     "Low level OAuth request function"
-    ([oauth url] (oauth-request oauth url "GET" nil))
-    ([oauth url method] (oauth-request oauth url method nil))
-    ([oauth url method body]
-        (when (:trace-messages oauth) 
+    ([oauth url] (raw-oauth-request oauth url "GET" nil false))
+    ([oauth url method] (raw-oauth-request oauth url method nil false))
+    ([oauth url method body] (raw-oauth-request oauth url method nil false))
+    ([oauth url method body retry]
+        (when (:trace-messages @oauth) 
             (println (str "Sending OAuth " method 
-                " Access token " (:access_token oauth) 
+                " Access token " (:access_token @oauth) 
                 " url " url 
                 (if (nil? body) " no body" (str " body " body)))))
         (let [http-agnt (http-agent/http-agent url
           		  :method method
-          		  :headers {"Authorization" (str "OAuth " (:access_token oauth)) "Content-Type" "application/json"}
+          		  :headers {"Authorization" (str "OAuth " (:access_token @oauth)) "Content-Type" "application/json"}
           		  :body (if (nil? body) 
           		    nil
           		    (json/json-str body)))
               json-response  (http-agent/string http-agnt)
           	  status (http-agent/status http-agnt)
           	  response (if (or (nil? json-response) (== (count json-response) 0)) nil (json/read-json json-response))]
-          	(when (:trace-messages oauth) 
-                (println (str "OAuth " method " status is " status (when (not (nil? response)) (str " response is " response)))))
-            response)))
+          	(if (and (= status 401) (not retry))
+          	  (do
+                (when (:trace-messages @oauth) 
+                  (println "Refreshing token"))
+          	    (swap! oauth refresh-oauth)
+          	    ; Try again, setting retry to true
+          	    (raw-oauth-request oauth url method body true))
+          	  (do 
+          	    (when (:trace-messages @oauth) 
+                  (println (str "OAuth " method " status is " status (when (not (nil? response)) (str " response is " response)))))
+                response)))))
+
+(defn oauth-request
+    "Low level OAuth request function - prepends instance URL"
+    ([oauth url] (raw-oauth-request oauth (str (:instance_url @oauth) url) "GET" nil))
+    ([oauth url method] (raw-oauth-request oauth (str (:instance_url @oauth) url) method nil))
+    ([oauth url method body] (raw-oauth-request oauth (str (:instance_url @oauth) url) method body)))
 
 (defn wrap-oauth
   "Handles the OAuth protocol."
@@ -73,7 +107,9 @@
                 {:status 302
             	:headers {"Location" "/"}
             	:session (let [oauth (get-oauth oauth-params ((:params request) "code"))]
-            	            {::oauth (merge oauth {:trace-messages (:trace-messages oauth-params)})})}
+            	            ; ::oauth is an atom so we can modify it when we
+            	            ; refresh the access token
+            	            {::oauth (atom oauth)})}
              	(let [oauth (::oauth (:session request))]
              		(if (nil? oauth) 
              			; Redirect to OAuth authentication/authorization
