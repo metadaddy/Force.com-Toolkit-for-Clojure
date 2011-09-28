@@ -59,7 +59,7 @@
     "Low level OAuth request function"
     ([oauth url] (raw-oauth-request oauth url "GET" nil false))
     ([oauth url method] (raw-oauth-request oauth url method nil false))
-    ([oauth url method body] (raw-oauth-request oauth url method nil false))
+    ([oauth url method body] (raw-oauth-request oauth url method body false))
     ([oauth url method body retry]
         (when (:trace-messages @oauth) 
             (println (str "Sending OAuth " method 
