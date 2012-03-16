@@ -1,4 +1,15 @@
-Very embryonic Clojure toolkit for Force.com REST API. Brace yourself for rapid evolution!
+Clojure toolkit for Force.com REST API. 
+
+This project currently uses [a fork of clj-oauth2](https://github.com/metadaddy-sfdc/clj-oauth2). You will need to grab that code and install it into your local Maven repo:
+
+    $ git clone git://github.com/metadaddy-sfdc/clj-oauth2.git
+    $ cd clj-oauth2
+    $ lein install
+
+I am working with Moritz to merge this into [the mainline clj-oauth2](https://github.com/DerGuteMoritz/clj-oauth2)
+
+Deployment
+----------
 
 Create a remote access app (Setup | App Setup | Develop | Remote Access).
 
