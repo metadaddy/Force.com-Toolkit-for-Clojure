@@ -19,23 +19,19 @@
 (defn my-excluded [uri]
 	(contains? #{"/exclude1" "/exclude2"} uri))
 
-(def force-com-oauth2
-  {:authorization-uri (str login-uri "/services/oauth2/authorize")
-   :access-token-uri (str login-uri "/services/oauth2/token")
-   :redirect-uri (System/getenv "REDIRECT_URI") ; TODO - figure out default
-   :client-id (System/getenv "CLIENT_ID")
-   :client-secret (System/getenv "CLIENT_SECRET")
-   :scope ["id" "api" "refresh_token"]
-   :grant-type "authorization_code"
-   :force-https (System/getenv "FORCE_HTTPS") ; on Heroku the app thinks it is always http
-   :trace-messages (Boolean/valueOf (get (System/getenv) "DEBUG" "false"))
-   :get-state oauth2-ring/get-state-from-session
-   :put-state oauth2-ring/put-state-in-session
-   :get-target oauth2-ring/get-target-from-session
-   :put-target oauth2-ring/put-target-in-session
-   :get-oauth2-data oauth2-ring/get-oauth2-data-from-session
-   :put-oauth2-data oauth2-ring/put-oauth2-data-in-session
-   :exclude #"^/exclude.*"})
+(def force-com-oauth2 
+  (merge 
+    oauth2-ring/store-data-in-session 
+    {:authorization-uri (str login-uri "/services/oauth2/authorize")
+     :access-token-uri (str login-uri "/services/oauth2/token")
+     :redirect-uri (System/getenv "REDIRECT_URI") ; TODO - figure out default
+     :client-id (System/getenv "CLIENT_ID")
+     :client-secret (System/getenv "CLIENT_SECRET")
+     :scope ["id" "api" "refresh_token"]
+     :grant-type "authorization_code"
+     :force-https (System/getenv "FORCE_HTTPS") ; on Heroku the app thinks it is always http
+     :trace-messages (Boolean/valueOf (get (System/getenv) "DEBUG" "false"))
+     :exclude #"^/exclude.*"}))
 
 ; HTML templating stuff                  
 (def field-sel [:select#field :> html/first-child])

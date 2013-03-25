@@ -1,17 +1,11 @@
 Clojure toolkit for Force.com REST API. 
 
-This project currently uses [a fork of clj-oauth2](https://github.com/metadaddy-sfdc/clj-oauth2). You will need to grab that code and install it into your local Maven repo:
-
-    $ git clone git://github.com/metadaddy-sfdc/clj-oauth2.git
-    $ cd clj-oauth2
-    $ lein install
-
-I am working with Moritz to merge this into [the mainline clj-oauth2](https://github.com/DerGuteMoritz/clj-oauth2)
+This project uses [Moritz Heidkamp](https://github.com/DerGuteMoritz)'s [clj-oauth2](https://github.com/DerGuteMoritz/clj-oauth2).
 
 Deployment
 ----------
 
-Create a remote access app (Setup | App Setup | Develop | Remote Access).
+Create a connected app (Setup | App Setup | Create | Apps | Connected Apps | New). In older Developer Edition orgs, this is known as a remote access app (Setup | App Setup | Develop | Remote Access).
 
 Running on localhost
 --------------------
