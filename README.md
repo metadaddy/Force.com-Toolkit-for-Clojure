@@ -1,4 +1,4 @@
-Clojure toolkit for Force.com REST API. 
+Clojure toolkit for [Force.com REST API](http://wiki.developerforce.com/page/REST_API). 
 
 This project uses [Moritz Heidkamp](https://github.com/DerGuteMoritz)'s [clj-oauth2](https://github.com/DerGuteMoritz/clj-oauth2).
 
